@@ -10,6 +10,8 @@ const numeroDeVentas = document.getElementById('numeroDeVentas');
 const borrarVentas = document.getElementById('borrarVentas');
 const fechaActualModal = document.getElementById('fechaActual');
 const botonCalcularTotalAcumulado = document.getElementById('botonCalcularTotalAcumulado');
+const fechaCompra = document.getElementById('fechaCompra');
+const valorUnitario = document.getElementById('valorUnitario');
 
 // Dar formato a los valores en peso colombiano
 function formatoColombia(valor) {
@@ -53,13 +55,15 @@ historialDeVentasBoton.addEventListener('click', () => {
 
     // Tabla dinamica con informacion de las ventas
     bodyModalHistorialDeVentas.innerHTML = `
-    <table class="table">
+    <table class="table table-striped table-hover table-bordered">
   <thead>
     <tr>
       <th scope="col">#</th>
       <th scope="col">Producto</th>
-      <th scope="col">Valor Venta</th>
       <th scope="col">Cantidad</th>
+      <th scope="col">Valor Unitario</th>
+      <th scope="col">Valor Venta</th>
+      <th scope="col">Hora Venta</th>
     </tr>
   </thead>
 <tbody>
@@ -68,13 +72,15 @@ historialDeVentasBoton.addEventListener('click', () => {
                 <tr>
                     <th scope="row">${index + 1}</th>
                     <td>${venta.nombreProducto}</td>
-                    <td>${formatoColombia(venta.valorVenta)}</td>
                     <td>${venta.cantidadProducto}</td>
+                    <td>${formatoColombia(venta.precioUnitario)}</td>
+                    <td>${formatoColombia(venta.valorVenta)}</td>
+                    <td>${venta.horaDeVenta}</td>
                 </tr>
             `).join("")
             : `
                 <tr>
-                    <td colspan="4" class="text-center">
+                    <td colspan="6" class="text-center">
                         No hay ventas registradas.
                     </td>
                 </tr>
@@ -98,10 +104,16 @@ borrarVentas.addEventListener('click', () => {
 botonCalcularTotalAcumulado.addEventListener('click', () => {
     if (historialDeVentas.length !== 0) {
         const totalFinal = historialDeVentas.reduce((acumulador, venta) => acumulador + venta.valorVenta, 0);
-        const h4 = document.createElement('h4');
-        h5.classList.add('text-success');
-        h5.textContent = formatoColombia(totalFinal) + " pesos";
-        bodyModalHistorialDeVentas.append(h5);
+
+        // Verifica si ya existe un h4 con ese texto específico
+        const h4Existente = bodyModalHistorialDeVentas.querySelector(`h4.text-success`);
+        if (!h4Existente) {
+            // Si no existe crea el elemento 
+            const h4 = document.createElement('h4');
+            h4.classList.add('text-success');
+            h4.textContent = formatoColombia(totalFinal) + " pesos";
+            bodyModalHistorialDeVentas.append(h4);
+        }
     }
 })
 
@@ -134,46 +146,60 @@ botonIniciar.addEventListener("click", () => {
                         const faltante = totalApagar - valorApagar;
                         alert("Hace falta " + formatoColombia(faltante) + " pesos.");
                         total.classList.add("text-danger");
-                        total.innerHTML = "<i class='bi bi-exclamation-triangle-fill'></i> Dinero pendiente: " + formatoColombia(totalApagar) + " pesos.";
-                        productoComprado.innerHTML = " <del><i class='bi bi-box-seam-fill'></i> Producto: " + producto + ".</del>";
-                        cantidadTexto.innerHTML = "<del><i class='bi bi-stack'></i> Cantidad: " + cantidad + ".</del>";
-
-
+                        total.innerHTML = "<i class='bi bi-exclamation-triangle-fill'></i> Dinero pendiente: " + formatoColombia(totalApagar) + " pesos";
+                        valorUnitario.innerHTML = "<del><i class='bi bi-coin'></i> Valor Unitario: " + formatoColombia(precioUnitario) + " pesos</del>";
+                        productoComprado.innerHTML = " <del><i class='bi bi-box-seam-fill'></i> Producto: " + producto + "</del>";
+                        cantidadTexto.innerHTML = "<del><i class='bi bi-stack'></i> Cantidad: " + cantidad + "</del>";
+                        fechaCompra.innerHTML = "Fecha de compra: " + new Date().toLocaleDateString('es-ES');
                     } else if (valorApagar > totalApagar) {
                         alert("El total a pagar es " + formatoColombia(totalApagar) + " pesos y el valor ingresado es " + formatoColombia(valorApagar) + " pesos.");
                         const devuelta = valorApagar - totalApagar;
-                        alert("Tu devuelta es de " + formatoColombia(devuelta) + " pesos.");
-                        alert("Compra realizada exitosamente.");
+                        alert("Tu devuelta es de " + formatoColombia(devuelta) + " pesos");
                         total.classList.add("text-success");
                         total.innerHTML = "<i class='bi bi-cash-coin'></i> Total a pagar: " + formatoColombia(totalApagar) + " pesos.";
-                        productoComprado.innerHTML = "<i class='bi bi-box-seam-fill'></i> Producto: " + producto + ".";
-                        cantidadTexto.innerHTML = "<i class='bi bi-stack'></i> Cantidad: " + cantidad + ".";
-                        devueltaTexto.innerHTML = "<i class='bi bi-cash'></i> Devuelta: " + formatoColombia(devuelta) + " pesos.";
+                        valorUnitario.innerHTML = "<i class='bi bi-coin'></i> Valor Unitario: " + formatoColombia(precioUnitario) + " pesos";
+                        productoComprado.innerHTML = "<i class='bi bi-box-seam-fill'></i> Producto: " + producto;
+                        cantidadTexto.innerHTML = "<i class='bi bi-stack'></i> Cantidad: " + cantidad;
+                        devueltaTexto.innerHTML = "<i class='bi bi-cash'></i> Devuelta: " + formatoColombia(devuelta) + " pesos";
+                        fechaCompra.innerHTML = "Fecha de compra: " + new Date().toLocaleDateString('es-ES');
                         botonPdf.classList.remove("d-none");
                         botonPdf.classList.add("d-block");
 
                         // Añadir al historial de ventas
                         historialDeVentas.push({
                             nombreProducto: producto,
+                            precioUnitario: precioUnitario,
                             valorVenta: totalApagar,
-                            cantidadProducto: cantidad
+                            cantidadProducto: cantidad,
+                            horaDeVenta: new Date().toLocaleTimeString('es-ES', {
+                                hour: 'numeric',
+                                minute: '2-digit',
+                                hour12: true
+                            })
                         });
 
                     } else {
                         alert("El total a pagar es " + formatoColombia(totalApagar) + " pesos y el valor ingresado es " + formatoColombia(valorApagar) + " pesos.");
-                        alert("Compra realizada exitosamente.");
                         total.classList.add("text-success");
                         total.innerHTML = "<i class='bi bi-cash-coin'></i> Total a pagar: " + formatoColombia(totalApagar) + " pesos.";
-                        productoComprado.innerHTML = "<i class='bi bi-box-seam-fill'></i> Producto: " + producto + ".";
-                        cantidadTexto.innerHTML = "<i class='bi bi-stack'></i> Cantidad: " + cantidad + ".";
+                        valorUnitario.innerHTML = "<i class='bi bi-coin'></i> Valor Unitario: " + formatoColombia(precioUnitario) + " pesos";
+                        productoComprado.innerHTML = "<i class='bi bi-box-seam-fill'></i> Producto: " + producto;
+                        cantidadTexto.innerHTML = "<i class='bi bi-stack'></i> Cantidad: " + cantidad;
+                        fechaCompra.innerHTML = "Fecha de compra: " + new Date().toLocaleDateString('es-ES');
                         botonPdf.classList.remove("d-none");
                         botonPdf.classList.add("d-block");
 
                         // Añadir al historial de ventas
                         historialDeVentas.push({
                             nombreProducto: producto,
+                            precioUnitario: precioUnitario,
                             valorVenta: totalApagar,
-                            cantidadProducto: cantidad
+                            cantidadProducto: cantidad,
+                            horaDeVenta: new Date().toLocaleTimeString('es-ES', {
+                                hour: 'numeric',
+                                minute: '2-digit',
+                                hour12: true
+                            })
                         });
                     }
 
