@@ -55,6 +55,7 @@ historialDeVentasBoton.addEventListener('click', () => {
 
     // Tabla dinamica con informacion de las ventas
     bodyModalHistorialDeVentas.innerHTML = `
+    <div class="table-responsive">
     <table class="table table-striped table-hover table-bordered">
   <thead>
     <tr>
@@ -88,6 +89,7 @@ historialDeVentasBoton.addEventListener('click', () => {
         }
 </tbody>
 </table>
+</div>
     `
 });
 
