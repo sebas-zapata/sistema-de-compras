@@ -56,7 +56,7 @@ historialDeVentasBoton.addEventListener('click', () => {
     // Tabla dinamica con informacion de las ventas
     bodyModalHistorialDeVentas.innerHTML = `
     <div class="table-responsive">
-    <table class="table table-striped table-hover table-bordered">
+    <table class="table table-striped table-hover table-bordered text-center">
   <thead>
     <tr>
       <th scope="col">#</th>
@@ -112,8 +112,8 @@ botonCalcularTotalAcumulado.addEventListener('click', () => {
         if (!h4Existente) {
             // Si no existe crea el elemento 
             const h4 = document.createElement('h4');
-            h4.classList.add('text-success');
-            h4.textContent = formatoColombia(totalFinal) + " pesos";
+            h4.classList.add('text-dark', 'fw-bolder');
+            h4.textContent = "Total Final: "+ formatoColombia(totalFinal) + " pesos";
             bodyModalHistorialDeVentas.append(h4);
         }
     }
@@ -124,6 +124,9 @@ botonIniciar.addEventListener("click", () => {
     total.innerHTML = '';
     devueltaTexto.innerHTML = '';
     productoComprado.innerHTML = '';
+    cantidadTexto.innerHTML = '';
+    fechaCompra.innerHTML = '';
+    valorUnitario.innerHTML = '';
 
     const producto = prompt("Ingrese el producto que va a comprar.");
     if (producto.trim() === "") {
@@ -147,7 +150,7 @@ botonIniciar.addEventListener("click", () => {
                         alert("El total a pagar es " + formatoColombia(totalApagar) + " pesos y el valor ingresado es " + formatoColombia(valorApagar) + " pesos.");
                         const faltante = totalApagar - valorApagar;
                         alert("Hace falta " + formatoColombia(faltante) + " pesos.");
-                        total.classList.add("text-danger");
+                        total.classList.add("text-dark");
                         total.innerHTML = "<i class='bi bi-exclamation-triangle-fill'></i> Dinero pendiente: " + formatoColombia(totalApagar) + " pesos";
                         valorUnitario.innerHTML = "<del><i class='bi bi-coin'></i> Valor Unitario: " + formatoColombia(precioUnitario) + " pesos</del>";
                         productoComprado.innerHTML = " <del><i class='bi bi-box-seam-fill'></i> Producto: " + producto + "</del>";
@@ -157,7 +160,7 @@ botonIniciar.addEventListener("click", () => {
                         alert("El total a pagar es " + formatoColombia(totalApagar) + " pesos y el valor ingresado es " + formatoColombia(valorApagar) + " pesos.");
                         const devuelta = valorApagar - totalApagar;
                         alert("Tu devuelta es de " + formatoColombia(devuelta) + " pesos");
-                        total.classList.add("text-success");
+                        total.classList.add("text-dark");
                         total.innerHTML = "<i class='bi bi-cash-coin'></i> Total a pagar: " + formatoColombia(totalApagar) + " pesos.";
                         valorUnitario.innerHTML = "<i class='bi bi-coin'></i> Valor Unitario: " + formatoColombia(precioUnitario) + " pesos";
                         productoComprado.innerHTML = "<i class='bi bi-box-seam-fill'></i> Producto: " + producto;
@@ -182,7 +185,7 @@ botonIniciar.addEventListener("click", () => {
 
                     } else {
                         alert("El total a pagar es " + formatoColombia(totalApagar) + " pesos y el valor ingresado es " + formatoColombia(valorApagar) + " pesos.");
-                        total.classList.add("text-success");
+                        total.classList.add("text-dark");
                         total.innerHTML = "<i class='bi bi-cash-coin'></i> Total a pagar: " + formatoColombia(totalApagar) + " pesos.";
                         valorUnitario.innerHTML = "<i class='bi bi-coin'></i> Valor Unitario: " + formatoColombia(precioUnitario) + " pesos";
                         productoComprado.innerHTML = "<i class='bi bi-box-seam-fill'></i> Producto: " + producto;
