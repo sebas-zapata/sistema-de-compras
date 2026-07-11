@@ -157,9 +157,10 @@ formularioVenta.addEventListener("submit", (e) => {
 
     // 4. Lógica de estados del pago
     if (valorApagar < totalApagar) {
+        const dineroFaltante = totalApagar - valorApagar;
         // Caso A: Dinero insuficiente / pendiente
         total.classList.add("text-dark");
-        total.innerHTML = "<i class='bi bi-exclamation-triangle-fill'></i> Dinero pendiente: " + formatoColombia(totalApagar) + " pesos";
+        total.innerHTML = "<i class='bi bi-exclamation-triangle-fill'></i> Dinero pendiente: " + formatoColombia(dineroFaltante) + " pesos";
         valorUnitario.innerHTML = "<del><i class='bi bi-coin'></i> Valor Unitario: " + formatoColombia(valorUnitarioProducto) + " pesos</del>";
         productoComprado.innerHTML = " <del><i class='bi bi-box-seam-fill'></i> Producto: " + producto + "</del>";
         cantidadTexto.innerHTML = "<del><i class='bi bi-stack'></i> Cantidad: " + cantidad + "</del>";
@@ -173,11 +174,15 @@ formularioVenta.addEventListener("submit", (e) => {
         productoComprado.innerHTML = "<i class='bi bi-box-seam-fill'></i> Producto: " + producto;
         cantidadTexto.innerHTML = "<i class='bi bi-stack'></i> Cantidad: " + cantidad;
         fechaCompra.innerHTML = "Fecha de compra: " + fechaActualString;
+        totalApagarVenta.innerHTML = "";
+
 
         // Si hay cambio/devuelta, lo agregamos
         if (valorApagar > totalApagar) {
             const devuelta = valorApagar - totalApagar;
             devueltaTexto.innerHTML = "<i class='bi bi-cash'></i> Devuelta: " + formatoColombia(devuelta) + " pesos";
+            totalApagarVenta.innerHTML = "";
+
         }
 
         botonPdf.classList.remove("d-none");
