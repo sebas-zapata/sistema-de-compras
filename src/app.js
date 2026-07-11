@@ -160,7 +160,7 @@ botonCalcularTotalAcumulado.addEventListener('click', () => {
 formularioVenta.addEventListener("submit", (e) => {
     e.preventDefault();
 
-    // 1. Limpiar textos informativos previos
+    // Limpiar textos informativos previos
     total.innerHTML = '';
     devueltaTexto.innerHTML = '';
     productoComprado.innerHTML = '';
@@ -168,7 +168,7 @@ formularioVenta.addEventListener("submit", (e) => {
     fechaCompra.innerHTML = '';
     valorUnitario.innerHTML = '';
 
-    // 2. Capturar y formatear valores de los inputs
+    // Capturar y formatear valores de los inputs
     var producto = document.getElementById('productoVenta').value.trim();
     var cantidad = parseInt(document.getElementById('cantidadVenta').value) || 0;
     var valorUnitarioProducto = parseInt(document.getElementById('valorUnitarioVenta').value) || 0;
@@ -187,7 +187,7 @@ formularioVenta.addEventListener("submit", (e) => {
         hour12: true
     });
 
-    // 4. Lógica de estados del pago
+    // Lógica de estados del pago
     if (valorApagar < totalApagar) {
         const dineroFaltante = totalApagar - valorApagar;
         // Caso A: Dinero insuficiente / pendiente
@@ -200,7 +200,7 @@ formularioVenta.addEventListener("submit", (e) => {
         alerta("error");
 
     } else {
-        // Caso B y C: Pago exacto o con devuelta (Comparten casi toda la lógica)
+        // Pago exacto o con devuelta (Comparten casi toda la lógica)
         total.classList.add("text-dark");
         total.innerHTML = "<i class='bi bi-cash-coin'></i> Total a pagar: " + formatoColombia(totalApagar) + " pesos.";
         valorUnitario.innerHTML = "<i class='bi bi-coin'></i> Valor Unitario: " + formatoColombia(valorUnitarioProducto) + " pesos";
