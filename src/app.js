@@ -1,4 +1,4 @@
-const botonIniciar = document.getElementById('iniciar');
+const formularioVenta = document.getElementById('formularioVenta');
 const total = document.getElementById('total');
 const productoComprado = document.getElementById('producto');
 const devueltaTexto = document.getElementById('devuelta');
@@ -12,6 +12,14 @@ const fechaActualModal = document.getElementById('fechaActual');
 const botonCalcularTotalAcumulado = document.getElementById('botonCalcularTotalAcumulado');
 const fechaCompra = document.getElementById('fechaCompra');
 const valorUnitario = document.getElementById('valorUnitario');
+const modalFormularioVenta = document.getElementById('staticBackdrop');
+const totalApagarFormularioVentas = document.getElementById('totalApagarFormularioVentas');
+const cantidadInput = document.getElementById('cantidadVenta');
+const valorUnitarioInput = document.getElementById('valorUnitarioVenta');
+const totalApagarVenta = document.getElementById('totalApagarVenta');
+
+// Array para almacenar el historial de ventas
+let historialDeVentas = [];
 
 // Dar formato a los valores en peso colombiano
 function formatoColombia(valor) {
@@ -41,9 +49,6 @@ document.getElementById('botonPdf').addEventListener('click', () => {
     // Generar y descargar el PDF
     html2pdf().set(opciones).from(recibo).save();
 });
-
-// Array para almacenar el historial de ventas
-let historialDeVentas = [];
 
 // Recorrer el array de objetos con todas las ventas realizadas
 historialDeVentasBoton.addEventListener('click', () => {
@@ -108,19 +113,22 @@ botonCalcularTotalAcumulado.addEventListener('click', () => {
         const totalFinal = historialDeVentas.reduce((acumulador, venta) => acumulador + venta.valorVenta, 0);
 
         // Verifica si ya existe un h4 con ese texto específico
-        const h4Existente = bodyModalHistorialDeVentas.querySelector(`h4.text-success`);
+        const h4Existente = bodyModalHistorialDeVentas.querySelector(`h4.text-dark`);
         if (!h4Existente) {
             // Si no existe crea el elemento 
             const h4 = document.createElement('h4');
             h4.classList.add('text-dark', 'fw-bolder');
-            h4.textContent = "Total Final: "+ formatoColombia(totalFinal) + " pesos";
+            h4.textContent = "Total Final: " + formatoColombia(totalFinal) + " pesos";
             bodyModalHistorialDeVentas.append(h4);
         }
     }
 })
 
-// Iniciar una nueva venta
-botonIniciar.addEventListener("click", () => {
+// Registrar una nueva venta
+formularioVenta.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    // 1. Limpiar textos informativos previos
     total.innerHTML = '';
     devueltaTexto.innerHTML = '';
     productoComprado.innerHTML = '';
@@ -128,92 +136,94 @@ botonIniciar.addEventListener("click", () => {
     fechaCompra.innerHTML = '';
     valorUnitario.innerHTML = '';
 
-    const producto = prompt("Ingrese el producto que va a comprar.");
-    if (producto.trim() === "") {
-        alert("Se debe ingresar un producto.");
+    // 2. Capturar y formatear valores de los inputs
+    var producto = document.getElementById('productoVenta').value.trim();
+    var cantidad = parseInt(document.getElementById('cantidadVenta').value) || 0;
+    var valorUnitarioProducto = parseInt(document.getElementById('valorUnitarioVenta').value) || 0;
+    var valorApagar = parseInt(document.getElementById('valorApagarVenta').value) || 0;
+
+    if (producto === "" || cantidad <= 0 || valorUnitarioProducto <= 0 || valorApagar <= 0) {
+        formularioVenta.classList.add('was-validated');
+        return;
+    }
+
+    const totalApagar = cantidad * valorUnitarioProducto;
+    const fechaActualString = new Date().toLocaleDateString('es-ES');
+    const horaActualString = new Date().toLocaleTimeString('es-ES', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+    });
+
+    // 4. Lógica de estados del pago
+    if (valorApagar < totalApagar) {
+        // Caso A: Dinero insuficiente / pendiente
+        total.classList.add("text-dark");
+        total.innerHTML = "<i class='bi bi-exclamation-triangle-fill'></i> Dinero pendiente: " + formatoColombia(totalApagar) + " pesos";
+        valorUnitario.innerHTML = "<del><i class='bi bi-coin'></i> Valor Unitario: " + formatoColombia(valorUnitarioProducto) + " pesos</del>";
+        productoComprado.innerHTML = " <del><i class='bi bi-box-seam-fill'></i> Producto: " + producto + "</del>";
+        cantidadTexto.innerHTML = "<del><i class='bi bi-stack'></i> Cantidad: " + cantidad + "</del>";
+        fechaCompra.innerHTML = "Fecha de compra: " + fechaActualString;
+
     } else {
-        const cantidad = parseInt(prompt("Ingrese la cantidad de ese producto que va a comprar."));
-        if (cantidad <= 0) {
-            alert("La cantidad no puede ser " + cantidad + " .");
-        } else {
-            const precioUnitario = parseFloat(prompt("Ingrese el precio unitario del producto " + producto));
-            if (precioUnitario <= 0) {
-                alert("El precio unitario no puede ser " + precioUnitario + " .")
-            } else {
-                const totalApagar = cantidad * precioUnitario;
-                alert("El total a pagar es: " + formatoColombia(totalApagar) + " pesos.");
-                const valorApagar = parseFloat(prompt("Ingrese el valor a pagar, Total: " + formatoColombia(totalApagar) + " pesos."));
-                if (valorApagar <= 0) {
-                    alert("El valor a pagar no debe ser " + valorApagar + " pesos");
-                } else {
-                    if (valorApagar < totalApagar) {
-                        alert("El total a pagar es " + formatoColombia(totalApagar) + " pesos y el valor ingresado es " + formatoColombia(valorApagar) + " pesos.");
-                        const faltante = totalApagar - valorApagar;
-                        alert("Hace falta " + formatoColombia(faltante) + " pesos.");
-                        total.classList.add("text-dark");
-                        total.innerHTML = "<i class='bi bi-exclamation-triangle-fill'></i> Dinero pendiente: " + formatoColombia(totalApagar) + " pesos";
-                        valorUnitario.innerHTML = "<del><i class='bi bi-coin'></i> Valor Unitario: " + formatoColombia(precioUnitario) + " pesos</del>";
-                        productoComprado.innerHTML = " <del><i class='bi bi-box-seam-fill'></i> Producto: " + producto + "</del>";
-                        cantidadTexto.innerHTML = "<del><i class='bi bi-stack'></i> Cantidad: " + cantidad + "</del>";
-                        fechaCompra.innerHTML = "Fecha de compra: " + new Date().toLocaleDateString('es-ES');
-                    } else if (valorApagar > totalApagar) {
-                        alert("El total a pagar es " + formatoColombia(totalApagar) + " pesos y el valor ingresado es " + formatoColombia(valorApagar) + " pesos.");
-                        const devuelta = valorApagar - totalApagar;
-                        alert("Tu devuelta es de " + formatoColombia(devuelta) + " pesos");
-                        total.classList.add("text-dark");
-                        total.innerHTML = "<i class='bi bi-cash-coin'></i> Total a pagar: " + formatoColombia(totalApagar) + " pesos.";
-                        valorUnitario.innerHTML = "<i class='bi bi-coin'></i> Valor Unitario: " + formatoColombia(precioUnitario) + " pesos";
-                        productoComprado.innerHTML = "<i class='bi bi-box-seam-fill'></i> Producto: " + producto;
-                        cantidadTexto.innerHTML = "<i class='bi bi-stack'></i> Cantidad: " + cantidad;
-                        devueltaTexto.innerHTML = "<i class='bi bi-cash'></i> Devuelta: " + formatoColombia(devuelta) + " pesos";
-                        fechaCompra.innerHTML = "Fecha de compra: " + new Date().toLocaleDateString('es-ES');
-                        botonPdf.classList.remove("d-none");
-                        botonPdf.classList.add("d-block");
+        // Caso B y C: Pago exacto o con devuelta (Comparten casi toda la lógica)
+        total.classList.add("text-dark");
+        total.innerHTML = "<i class='bi bi-cash-coin'></i> Total a pagar: " + formatoColombia(totalApagar) + " pesos.";
+        valorUnitario.innerHTML = "<i class='bi bi-coin'></i> Valor Unitario: " + formatoColombia(valorUnitarioProducto) + " pesos";
+        productoComprado.innerHTML = "<i class='bi bi-box-seam-fill'></i> Producto: " + producto;
+        cantidadTexto.innerHTML = "<i class='bi bi-stack'></i> Cantidad: " + cantidad;
+        fechaCompra.innerHTML = "Fecha de compra: " + fechaActualString;
 
-                        // Añadir al historial de ventas
-                        historialDeVentas.push({
-                            nombreProducto: producto,
-                            precioUnitario: precioUnitario,
-                            valorVenta: totalApagar,
-                            cantidadProducto: cantidad,
-                            horaDeVenta: new Date().toLocaleTimeString('es-ES', {
-                                hour: 'numeric',
-                                minute: '2-digit',
-                                hour12: true
-                            })
-                        });
-
-                    } else {
-                        alert("El total a pagar es " + formatoColombia(totalApagar) + " pesos y el valor ingresado es " + formatoColombia(valorApagar) + " pesos.");
-                        total.classList.add("text-dark");
-                        total.innerHTML = "<i class='bi bi-cash-coin'></i> Total a pagar: " + formatoColombia(totalApagar) + " pesos.";
-                        valorUnitario.innerHTML = "<i class='bi bi-coin'></i> Valor Unitario: " + formatoColombia(precioUnitario) + " pesos";
-                        productoComprado.innerHTML = "<i class='bi bi-box-seam-fill'></i> Producto: " + producto;
-                        cantidadTexto.innerHTML = "<i class='bi bi-stack'></i> Cantidad: " + cantidad;
-                        fechaCompra.innerHTML = "Fecha de compra: " + new Date().toLocaleDateString('es-ES');
-                        botonPdf.classList.remove("d-none");
-                        botonPdf.classList.add("d-block");
-
-                        // Añadir al historial de ventas
-                        historialDeVentas.push({
-                            nombreProducto: producto,
-                            precioUnitario: precioUnitario,
-                            valorVenta: totalApagar,
-                            cantidadProducto: cantidad,
-                            horaDeVenta: new Date().toLocaleTimeString('es-ES', {
-                                hour: 'numeric',
-                                minute: '2-digit',
-                                hour12: true
-                            })
-                        });
-                    }
-
-                }
-
-            }
-
+        // Si hay cambio/devuelta, lo agregamos
+        if (valorApagar > totalApagar) {
+            const devuelta = valorApagar - totalApagar;
+            devueltaTexto.innerHTML = "<i class='bi bi-cash'></i> Devuelta: " + formatoColombia(devuelta) + " pesos";
         }
 
+        botonPdf.classList.remove("d-none");
+        botonPdf.classList.add("d-block");
 
+        // Guardar en el historial
+        historialDeVentas.push({
+            nombreProducto: producto,
+            precioUnitario: valorUnitarioProducto,
+            valorVenta: totalApagar,
+            cantidadProducto: cantidad,
+            horaDeVenta: horaActualString
+        });
+
+        // Limpiar el formulario
+        formularioVenta.classList.remove('was-validated');
+        formularioVenta.reset();
     }
-})
+
+
+    if (modalFormularioVenta) {
+        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+            // Intento oficial usando la librería de Bootstrap
+            var modalBootstrap = bootstrap.Modal.getOrCreateInstance(modalFormularioVenta);
+            modalBootstrap.hide();
+        } else {
+            // Alternativa automática si falla la librería global: Simula clic en la X de cierre
+            var botonCerrarModal = modalFormularioVenta.querySelector('[data-bs-dismiss="modal"]');
+            if (botonCerrarModal) botonCerrarModal.click();
+        }
+    }
+});
+
+// Función para calcular y mostrar el total
+function calcularTotal() {
+    const cantidaddd = parseFloat(cantidadInput.value) || 0;
+    const valorUnitariooo = parseFloat(valorUnitarioInput.value) || 0;
+    if (cantidaddd == "" || valorUnitariooo == "") {
+        totalApagarVenta.innerHTML = "";
+        return;
+    }
+    const total = cantidaddd * valorUnitariooo;
+
+    totalApagarVenta.innerHTML = "Total: " + formatoColombia(total);
+}
+
+// Escuchamos los cambios en tiempo real
+cantidadInput.addEventListener('input', calcularTotal);
+valorUnitarioInput.addEventListener('input', calcularTotal);
