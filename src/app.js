@@ -43,7 +43,7 @@ function formatoColombia(valor) {
 function calcularTotal() {
     const cantidadDinamica = parseFloat(cantidadInput.value) || 0;
     const valorUnitarioDinamico = parseFloat(valorUnitarioInput.value) || 0;
-    if (cantidaddd == "" || valorUnitariooo == "") {
+    if (cantidadDinamica == "" || valorUnitarioDinamico == "") {
         totalApagarVenta.innerHTML = "";
         return;
     }
