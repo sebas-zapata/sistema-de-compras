@@ -17,6 +17,12 @@ const totalApagarFormularioVentas = document.getElementById('totalApagarFormular
 const cantidadInput = document.getElementById('cantidadVenta');
 const valorUnitarioInput = document.getElementById('valorUnitarioVenta');
 const totalApagarVenta = document.getElementById('totalApagarVenta');
+const alertaContenedor = document.getElementById('alerta');
+const mensajeAlerta = document.getElementById('mensajeAlerta');
+
+// Esperar los cambios en tiempo real de los inputs
+cantidadInput.addEventListener('input', calcularTotal);
+valorUnitarioInput.addEventListener('input', calcularTotal);
 
 // Array para almacenar el historial de ventas
 let historialDeVentas = [];
@@ -31,7 +37,33 @@ function formatoColombia(valor) {
 
     // Devolver valor con formato
     return formatoCOP;
-}
+};
+
+// Función para calcular y mostrar el total
+function calcularTotal() {
+    const cantidadDinamica = parseFloat(cantidadInput.value) || 0;
+    const valorUnitarioDinamico = parseFloat(valorUnitarioInput.value) || 0;
+    if (cantidaddd == "" || valorUnitariooo == "") {
+        totalApagarVenta.innerHTML = "";
+        return;
+    }
+    const total = cantidadDinamica * valorUnitarioDinamico;
+
+    totalApagarVenta.innerHTML = "Total: " + formatoColombia(total);
+};
+
+// Funcion para mostrar alerta dinamica
+function alerta(mensaje) {
+    if (mensaje == "correcto") {
+        alertaContenedor.classList.remove("d-none");
+        alertaContenedor.classList.add("alert-dark");
+        mensajeAlerta.innerHTML = "<i class='bi bi-check-circle-fill'></i> Correcto, venta registrada exitosamente.";
+    } else if (mensaje == "error") {
+        alertaContenedor.classList.remove("d-none");
+        alertaContenedor.classList.add("alert-secondary");
+        mensajeAlerta.innerHTML = "<i class='bi bi-exclamation-circle-fill'></i> Error, hubo un problema en la venta.";
+    }
+};
 
 // Generar documento PDF 
 document.getElementById('botonPdf').addEventListener('click', () => {
@@ -165,6 +197,7 @@ formularioVenta.addEventListener("submit", (e) => {
         productoComprado.innerHTML = " <del><i class='bi bi-box-seam-fill'></i> Producto: " + producto + "</del>";
         cantidadTexto.innerHTML = "<del><i class='bi bi-stack'></i> Cantidad: " + cantidad + "</del>";
         fechaCompra.innerHTML = "Fecha de compra: " + fechaActualString;
+        alerta("error");
 
     } else {
         // Caso B y C: Pago exacto o con devuelta (Comparten casi toda la lógica)
@@ -175,6 +208,7 @@ formularioVenta.addEventListener("submit", (e) => {
         cantidadTexto.innerHTML = "<i class='bi bi-stack'></i> Cantidad: " + cantidad;
         fechaCompra.innerHTML = "Fecha de compra: " + fechaActualString;
         totalApagarVenta.innerHTML = "";
+        alerta("correcto");
 
 
         // Si hay cambio/devuelta, lo agregamos
@@ -182,6 +216,7 @@ formularioVenta.addEventListener("submit", (e) => {
             const devuelta = valorApagar - totalApagar;
             devueltaTexto.innerHTML = "<i class='bi bi-cash'></i> Devuelta: " + formatoColombia(devuelta) + " pesos";
             totalApagarVenta.innerHTML = "";
+            alerta("correcto");
 
         }
 
@@ -215,20 +250,3 @@ formularioVenta.addEventListener("submit", (e) => {
         }
     }
 });
-
-// Función para calcular y mostrar el total
-function calcularTotal() {
-    const cantidaddd = parseFloat(cantidadInput.value) || 0;
-    const valorUnitariooo = parseFloat(valorUnitarioInput.value) || 0;
-    if (cantidaddd == "" || valorUnitariooo == "") {
-        totalApagarVenta.innerHTML = "";
-        return;
-    }
-    const total = cantidaddd * valorUnitariooo;
-
-    totalApagarVenta.innerHTML = "Total: " + formatoColombia(total);
-}
-
-// Escuchamos los cambios en tiempo real
-cantidadInput.addEventListener('input', calcularTotal);
-valorUnitarioInput.addEventListener('input', calcularTotal);
