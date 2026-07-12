@@ -25,7 +25,7 @@ cantidadInput.addEventListener('input', calcularTotal);
 valorUnitarioInput.addEventListener('input', calcularTotal);
 
 // Array para almacenar el historial de ventas
-let historialDeVentas = [];
+const historialDeVentas = [];
 
 // Dar formato a los valores en peso colombiano
 function formatoColombia(valor) {
@@ -39,7 +39,21 @@ function formatoColombia(valor) {
     return formatoCOP;
 };
 
-// Función para calcular y mostrar el total
+// Añadir una nueva en el localstorage
+function localStorageAñadirVentas(venta) {
+    const historialActual = JSON.parse(localStorage.getItem('ventas')) || [];
+    historialActual.push(venta);
+    localStorage.setItem('ventas', JSON.stringify(historialActual));
+}
+
+// Conseguir ventas del localstorage
+function localStorageConseguirVentas() {
+    const ventasActuales = localStorage.getItem('ventas');
+    const ventasTotales = JSON.parse(ventasActuales);
+    return ventasTotales;
+}
+
+// Función para calcular y mostrar el total en tiempo real
 function calcularTotal() {
     const cantidadDinamica = parseFloat(cantidadInput.value) || 0;
     const valorUnitarioDinamico = parseFloat(valorUnitarioInput.value) || 0;
@@ -62,32 +76,52 @@ function alerta(mensaje) {
         alertaContenedor.classList.remove("d-none");
         alertaContenedor.classList.add("alert-secondary");
         mensajeAlerta.innerHTML = "<i class='bi bi-exclamation-circle-fill'></i> Error, hubo un problema en la venta.";
+    } else if (mensaje == "ventas") {
+        alertaContenedor.classList.remove("d-none");
+        alertaContenedor.classList.add("alert-secondary");
+        mensajeAlerta.innerHTML = "<i class='bi bi-exclamation-circle-fill'></i> Correcto, se limpiaron todas las ventas acumuladas.";
     }
 };
 
 // Generar documento PDF 
-document.getElementById('botonPdf').addEventListener('click', () => {
+document.getElementById('botonPdf').addEventListener('click', function () {
+    const boton = this;
+
+    const diseñoOriginal = boton.innerHTML;
     const recibo = document.getElementById('recibo');
+    boton.innerHTML = `
+        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        Generando PDF...
+    `;
+    boton.disabled = true;
 
-    // Opciones de configuración para html2pdf
-    const opciones = {
-        margin: 10,
-        filename: 'recibo.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 }, // Aumenta la resolución
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
+    setTimeout(() => {
+        // 4. Ejecutar la acción de impresión del navegador
+        // Opciones de configuración para html2pdf
+        const opciones = {
+            margin: 10,
+            filename: 'recibo.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 }, // Aumenta la resolución
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
 
-    // Generar y descargar el PDF
-    html2pdf().set(opciones).from(recibo).save();
+        // Generar y descargar el PDF
+        html2pdf().set(opciones).from(recibo).save();
+
+        // 5. Restaurar el botón a su estado original
+        boton.innerHTML = diseñoOriginal;
+        boton.disabled = false;
+    }, 3000);
+
 });
 
 // Recorrer el array de objetos con todas las ventas realizadas
 historialDeVentasBoton.addEventListener('click', () => {
-
+    const ventas = localStorageConseguirVentas();
     const fechaActual = new Date();
     fechaActualModal.innerHTML = fechaActual.toLocaleDateString('es-ES');
-    numeroDeVentas.innerHTML = historialDeVentas.length;
+    numeroDeVentas.innerHTML = ventas.length;
     bodyModalHistorialDeVentas.innerHTML = "";
 
     // Tabla dinamica con informacion de las ventas
@@ -105,8 +139,8 @@ historialDeVentasBoton.addEventListener('click', () => {
     </tr>
   </thead>
 <tbody>
-    ${historialDeVentas.length
-            ? historialDeVentas.map((venta, index) => `
+    ${ventas.length
+            ? ventas.map((venta, index) => `
                 <tr>
                     <th scope="row">${index + 1}</th>
                     <td>${venta.nombreProducto}</td>
@@ -132,17 +166,20 @@ historialDeVentasBoton.addEventListener('click', () => {
 
 // Borrar todas las ventas, vaciar array
 borrarVentas.addEventListener('click', () => {
-    if (historialDeVentas.length >= 1) {
+    const ventasABorrar = localStorageConseguirVentas();
+    if (ventasABorrar.length >= 1) {
         bodyModalHistorialDeVentas.innerHTML = "";
         numeroDeVentas.innerHTML = "";
-        historialDeVentas.length = 0;
+        localStorage.setItem('ventas', JSON.stringify([]));
+        alerta('ventas');
     }
 });
 
 // Boton para calcular el total final acumulado de las ventas totales
 botonCalcularTotalAcumulado.addEventListener('click', () => {
-    if (historialDeVentas.length !== 0) {
-        const totalFinal = historialDeVentas.reduce((acumulador, venta) => acumulador + venta.valorVenta, 0);
+    const ventasACalcular = localStorageConseguirVentas();
+    if (ventasACalcular.length !== 0) {
+        const totalFinal = ventasACalcular.reduce((acumulador, venta) => acumulador + venta.valorVenta, 0);
 
         // Verifica si ya existe un h4 con ese texto específico
         const h4Existente = bodyModalHistorialDeVentas.querySelector(`h4.text-dark`);
@@ -220,24 +257,24 @@ formularioVenta.addEventListener("submit", (e) => {
 
         }
 
-        botonPdf.classList.remove("d-none");
-        botonPdf.classList.add("d-block");
-
-        // Guardar en el historial
-        historialDeVentas.push({
+        // Crear objeto para añadir al localstorage
+        nuevaVenta = {
             nombreProducto: producto,
             precioUnitario: valorUnitarioProducto,
             valorVenta: totalApagar,
             cantidadProducto: cantidad,
             horaDeVenta: horaActualString
-        });
+        };
+
+        // Llamar la funcion y pasar por argumento el objeto
+        localStorageAñadirVentas(nuevaVenta);
 
         // Limpiar el formulario
         formularioVenta.classList.remove('was-validated');
         formularioVenta.reset();
     }
 
-
+    // Cerrar modal cuando se registre una nueva venta 
     if (modalFormularioVenta) {
         if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
             // Intento oficial usando la librería de Bootstrap
