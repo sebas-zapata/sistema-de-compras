@@ -1,3 +1,4 @@
+// Seleccionar elementos por su ID para ser manipulados dinamicamente
 const formularioVenta = document.getElementById('formularioVenta');
 const total = document.getElementById('total');
 const productoComprado = document.getElementById('producto');
@@ -17,15 +18,27 @@ const totalApagarFormularioVentas = document.getElementById('totalApagarFormular
 const cantidadInput = document.getElementById('cantidadVenta');
 const valorUnitarioInput = document.getElementById('valorUnitarioVenta');
 const totalApagarVenta = document.getElementById('totalApagarVenta');
+const devueltaVenta = document.getElementById('devueltaVenta');
 const alertaContenedor = document.getElementById('alerta');
 const mensajeAlerta = document.getElementById('mensajeAlerta');
+const recibo = document.getElementById('recibo');
+const toastFacturaPdf = document.getElementById('toastFacturaPdf');
+const footerModalHistorialDeVentas = document.getElementById('footerModalHistorialDeVentas');
 
 // Esperar los cambios en tiempo real de los inputs
-cantidadInput.addEventListener('input', calcularTotal);
-valorUnitarioInput.addEventListener('input', calcularTotal);
+// Total a pagar
+cantidadInput.addEventListener('input', calcularTotalVenta);
+valorUnitarioInput.addEventListener('input', calcularTotalVenta);
 
 // Array para almacenar el historial de ventas
 const historialDeVentas = [];
+
+// Verificar si existe un localstorage de ventas
+const consultarArrayVentas = JSON.parse(localStorage.getItem('ventas'));
+if (!consultarArrayVentas) {
+    // Crear array en el localstorage para almacenar las ventas
+    localStorage.setItem('ventas', JSON.stringify(historialDeVentas));
+}
 
 // Dar formato a los valores en peso colombiano
 function formatoColombia(valor) {
@@ -39,9 +52,9 @@ function formatoColombia(valor) {
     return formatoCOP;
 };
 
-// Añadir una nueva en el localstorage
+// Añadir una nueva venta en el localstorage
 function localStorageAñadirVentas(venta) {
-    const historialActual = JSON.parse(localStorage.getItem('ventas')) || [];
+    const historialActual = JSON.parse(localStorage.getItem('ventas'));
     historialActual.push(venta);
     localStorage.setItem('ventas', JSON.stringify(historialActual));
 }
@@ -54,7 +67,7 @@ function localStorageConseguirVentas() {
 }
 
 // Función para calcular y mostrar el total en tiempo real
-function calcularTotal() {
+function calcularTotalVenta() {
     const cantidadDinamica = parseFloat(cantidadInput.value) || 0;
     const valorUnitarioDinamico = parseFloat(valorUnitarioInput.value) || 0;
     if (cantidadDinamica == "" || valorUnitarioDinamico == "") {
@@ -62,7 +75,6 @@ function calcularTotal() {
         return;
     }
     const total = cantidadDinamica * valorUnitarioDinamico;
-
     totalApagarVenta.innerHTML = "Total: " + formatoColombia(total);
 };
 
@@ -85,10 +97,14 @@ function alerta(mensaje) {
 
 // Generar documento PDF 
 document.getElementById('botonPdf').addEventListener('click', function () {
+    if (recibo.innerText.trim() === "") {
+        const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toastFacturaPdf).show();
+        return;
+    }
+
     const boton = this;
 
     const diseñoOriginal = boton.innerHTML;
-    const recibo = document.getElementById('recibo');
     boton.innerHTML = `
         <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
         Generando PDF...
@@ -131,11 +147,14 @@ historialDeVentasBoton.addEventListener('click', () => {
   <thead>
     <tr>
       <th scope="col">#</th>
+      <th scope="col">Cedula Cliente</th>
       <th scope="col">Producto</th>
       <th scope="col">Cantidad</th>
       <th scope="col">Valor Unitario</th>
+      <th scope="col">Pago</th>
       <th scope="col">Valor Venta</th>
-      <th scope="col">Hora Venta</th>
+      <th scope="col">Devuelta Venta</th>
+      <th scope="col">Fecha Venta</th>
     </tr>
   </thead>
 <tbody>
@@ -143,17 +162,20 @@ historialDeVentasBoton.addEventListener('click', () => {
             ? ventas.map((venta, index) => `
                 <tr>
                     <th scope="row">${index + 1}</th>
+                    <td>${venta.cedulaCliente}</td>
                     <td>${venta.nombreProducto}</td>
                     <td>${venta.cantidadProducto}</td>
                     <td>${formatoColombia(venta.precioUnitario)}</td>
-                    <td>${formatoColombia(venta.valorVenta)}</td>
+                    <td>${formatoColombia(venta.valorApagarVenta)}</td>
+                    <td class="text-success fw-bolder">${formatoColombia(venta.valorVenta)}</td>
+                    <td class="${venta.devueltaVenta > 0 && 'text-danger fw-bolder'}">${venta.devueltaVenta > 0 ? "-" : ""} ${formatoColombia(venta.devueltaVenta)} </td>
                     <td>${venta.horaDeVenta}</td>
                 </tr>
             `).join("")
             : `
                 <tr>
-                    <td colspan="6" class="text-center">
-                        No hay ventas registradas.
+                    <td colspan="9" class="text-center fw-bold">
+                        No hay ventas registradas - ${fechaActual.toLocaleDateString('es-ES')}.
                     </td>
                 </tr>
             `
@@ -182,13 +204,16 @@ botonCalcularTotalAcumulado.addEventListener('click', () => {
         const totalFinal = ventasACalcular.reduce((acumulador, venta) => acumulador + venta.valorVenta, 0);
 
         // Verifica si ya existe un h4 con ese texto específico
-        const h4Existente = bodyModalHistorialDeVentas.querySelector(`h4.text-dark`);
-        if (!h4Existente) {
+        const totalAcumuladoExistente = footerModalHistorialDeVentas.querySelector('h5');
+        if (!totalAcumuladoExistente) {
             // Si no existe crea el elemento 
-            const h4 = document.createElement('h4');
-            h4.classList.add('text-dark', 'fw-bolder');
-            h4.textContent = "Total Final: " + formatoColombia(totalFinal) + " pesos";
-            bodyModalHistorialDeVentas.append(h4);
+            const h5 = document.createElement('h5');
+            h5.classList.add('text-dark', 'fw-bolder', 'me-3');
+            h5.textContent = "Total Final: " + formatoColombia(totalFinal) + " pesos";
+            footerModalHistorialDeVentas.prepend(h5);
+            setTimeout(() => {
+                h5.remove();
+            }, 10000);
         }
     }
 })
@@ -206,12 +231,13 @@ formularioVenta.addEventListener("submit", (e) => {
     valorUnitario.innerHTML = '';
 
     // Capturar y formatear valores de los inputs
+    var cedulaCliente = document.getElementById('cedulaCliente').value.trim();
     var producto = document.getElementById('productoVenta').value.trim();
     var cantidad = parseInt(document.getElementById('cantidadVenta').value) || 0;
     var valorUnitarioProducto = parseInt(document.getElementById('valorUnitarioVenta').value) || 0;
     var valorApagar = parseInt(document.getElementById('valorApagarVenta').value) || 0;
 
-    if (producto === "" || cantidad <= 0 || valorUnitarioProducto <= 0 || valorApagar <= 0) {
+    if (cedulaCliente === "" || producto === "" || cantidad <= 0 || valorUnitarioProducto <= 0 || valorApagar <= 0) {
         formularioVenta.classList.add('was-validated');
         return;
     }
@@ -228,7 +254,7 @@ formularioVenta.addEventListener("submit", (e) => {
     if (valorApagar < totalApagar) {
         const dineroFaltante = totalApagar - valorApagar;
         // Caso A: Dinero insuficiente / pendiente
-        total.classList.add("text-dark");
+        total.classList.add("badge", "text-bg-dark");
         total.innerHTML = "<i class='bi bi-exclamation-triangle-fill'></i> Dinero pendiente: " + formatoColombia(dineroFaltante) + " pesos";
         valorUnitario.innerHTML = "<del><i class='bi bi-coin'></i> Valor Unitario: " + formatoColombia(valorUnitarioProducto) + " pesos</del>";
         productoComprado.innerHTML = " <del><i class='bi bi-box-seam-fill'></i> Producto: " + producto + "</del>";
@@ -238,7 +264,7 @@ formularioVenta.addEventListener("submit", (e) => {
 
     } else {
         // Pago exacto o con devuelta (Comparten casi toda la lógica)
-        total.classList.add("text-dark");
+        total.classList.add("badge", "text-bg-dark");
         total.innerHTML = "<i class='bi bi-cash-coin'></i> Total a pagar: " + formatoColombia(totalApagar) + " pesos.";
         valorUnitario.innerHTML = "<i class='bi bi-coin'></i> Valor Unitario: " + formatoColombia(valorUnitarioProducto) + " pesos";
         productoComprado.innerHTML = "<i class='bi bi-box-seam-fill'></i> Producto: " + producto;
@@ -259,11 +285,14 @@ formularioVenta.addEventListener("submit", (e) => {
 
         // Crear objeto para añadir al localstorage
         nuevaVenta = {
+            cedulaCliente: cedulaCliente,
             nombreProducto: producto,
             precioUnitario: valorUnitarioProducto,
             valorVenta: totalApagar,
             cantidadProducto: cantidad,
-            horaDeVenta: horaActualString
+            valorApagarVenta: valorApagar,
+            devueltaVenta: valorApagar > totalApagar ? valorApagar - totalApagar : 0,
+            horaDeVenta: new Date().toLocaleString('es-CO')
         };
 
         // Llamar la funcion y pasar por argumento el objeto
@@ -287,3 +316,7 @@ formularioVenta.addEventListener("submit", (e) => {
         }
     }
 });
+
+// Importar popover de bootstrap para los botones del navbar
+const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]');
+const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl));
