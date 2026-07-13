@@ -254,7 +254,7 @@ formularioVenta.addEventListener("submit", (e) => {
     if (valorApagar < totalApagar) {
         const dineroFaltante = totalApagar - valorApagar;
         // Caso A: Dinero insuficiente / pendiente
-        total.classList.add("badge", "text-bg-dark");
+        total.classList.add("badge", "text-bg-dark", "text-wrap");
         total.innerHTML = "<i class='bi bi-exclamation-triangle-fill'></i> Dinero pendiente: " + formatoColombia(dineroFaltante) + " pesos";
         valorUnitario.innerHTML = "<del><i class='bi bi-coin'></i> Valor Unitario: " + formatoColombia(valorUnitarioProducto) + " pesos</del>";
         productoComprado.innerHTML = " <del><i class='bi bi-box-seam-fill'></i> Producto: " + producto + "</del>";
