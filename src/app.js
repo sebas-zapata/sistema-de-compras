@@ -231,7 +231,7 @@ formularioVenta.addEventListener("submit", (e) => {
     fechaCompra.innerHTML = '';
     valorUnitario.innerHTML = '';
     valorApagarRecibo.innerHTML = '';
-    // Borrar hr del recibo de venta
+    // Borrar hr del recibo de ventas
     const hrRecibo = document.querySelector("#recibo hr");
     if (hrRecibo) {
         hrRecibo.remove();
