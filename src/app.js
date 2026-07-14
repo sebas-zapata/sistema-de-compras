@@ -24,6 +24,7 @@ const mensajeAlerta = document.getElementById('mensajeAlerta');
 const recibo = document.getElementById('recibo');
 const toastFacturaPdf = document.getElementById('toastFacturaPdf');
 const footerModalHistorialDeVentas = document.getElementById('footerModalHistorialDeVentas');
+const valorApagarRecibo = document.getElementById('valorApagarRecibo');
 
 // Esperar los cambios en tiempo real de los inputs
 // Total a pagar
@@ -144,7 +145,7 @@ historialDeVentasBoton.addEventListener('click', () => {
     bodyModalHistorialDeVentas.innerHTML = `
     <div class="table-responsive">
     <table class="table table-striped table-hover table-bordered text-center">
-  <thead>
+    <thead>
     <tr>
       <th scope="col">#</th>
       <th scope="col">Cedula Cliente</th>
@@ -156,13 +157,13 @@ historialDeVentasBoton.addEventListener('click', () => {
       <th scope="col">Devuelta Venta</th>
       <th scope="col">Fecha Venta</th>
     </tr>
-  </thead>
-<tbody>
+    </thead>
+    <tbody>
     ${ventas.length
             ? ventas.map((venta, index) => `
                 <tr>
                     <th scope="row">${index + 1}</th>
-                    <td>${venta.cedulaCliente}</td>
+                    <td class=${venta.cedulaCliente == "" && 'fw-bolder'}>${venta.cedulaCliente == "" ? "No registrada" : venta.cedulaCliente}</td>
                     <td>${venta.nombreProducto}</td>
                     <td>${venta.cantidadProducto}</td>
                     <td>${formatoColombia(venta.precioUnitario)}</td>
@@ -229,7 +230,12 @@ formularioVenta.addEventListener("submit", (e) => {
     cantidadTexto.innerHTML = '';
     fechaCompra.innerHTML = '';
     valorUnitario.innerHTML = '';
-
+    valorApagarRecibo.innerHTML = '';
+    // Borrar hr del recibo de venta
+    const hrRecibo = document.querySelector("#recibo hr");
+    if (hrRecibo) {
+        hrRecibo.remove();
+    }
     // Capturar y formatear valores de los inputs
     var cedulaCliente = document.getElementById('cedulaCliente').value.trim();
     var producto = document.getElementById('productoVenta').value.trim();
@@ -237,7 +243,8 @@ formularioVenta.addEventListener("submit", (e) => {
     var valorUnitarioProducto = parseInt(document.getElementById('valorUnitarioVenta').value) || 0;
     var valorApagar = parseInt(document.getElementById('valorApagarVenta').value) || 0;
 
-    if (cedulaCliente === "" || producto === "" || cantidad <= 0 || valorUnitarioProducto <= 0 || valorApagar <= 0) {
+    // Realizar validacion y mostrar alerta en los inpust
+    if (producto === "" || cantidad <= 0 || valorUnitarioProducto <= 0 || valorApagar <= 0) {
         formularioVenta.classList.add('was-validated');
         return;
     }
@@ -251,39 +258,45 @@ formularioVenta.addEventListener("submit", (e) => {
     });
 
     // Lógica de estados del pago
+    // Si el dinero ingresado es menor a la venta - No registrar venta
     if (valorApagar < totalApagar) {
         const dineroFaltante = totalApagar - valorApagar;
-        // Caso A: Dinero insuficiente / pendiente
         total.classList.add("badge", "text-bg-dark", "text-wrap");
         total.innerHTML = "<i class='bi bi-exclamation-triangle-fill'></i> Dinero pendiente: " + formatoColombia(dineroFaltante) + " pesos";
+        valorApagarRecibo.innerHTML = "<i class='bi bi-wallet2'></i> Pago: " + formatoColombia(valorApagar) + " pesos";
         valorUnitario.innerHTML = "<del><i class='bi bi-coin'></i> Valor Unitario: " + formatoColombia(valorUnitarioProducto) + " pesos</del>";
         productoComprado.innerHTML = " <del><i class='bi bi-box-seam-fill'></i> Producto: " + producto + "</del>";
         cantidadTexto.innerHTML = "<del><i class='bi bi-stack'></i> Cantidad: " + cantidad + "</del>";
+        const hr = document.createElement('hr');
+        fechaCompraDetalleFactura = recibo.lastElementChild;
+        fechaCompraDetalleFactura.insertAdjacentElement("beforebegin", hr);
         fechaCompra.innerHTML = "Fecha de compra: " + fechaActualString;
         alerta("error");
 
+        // Pago exacto o con devuelta
     } else {
-        // Pago exacto o con devuelta (Comparten casi toda la lógica)
         total.classList.add("badge", "text-bg-dark");
         total.innerHTML = "<i class='bi bi-cash-coin'></i> Total a pagar: " + formatoColombia(totalApagar) + " pesos.";
+        valorApagarRecibo.innerHTML = "<i class='bi bi-wallet2'></i> Pago: " + formatoColombia(valorApagar) + " pesos";
         valorUnitario.innerHTML = "<i class='bi bi-coin'></i> Valor Unitario: " + formatoColombia(valorUnitarioProducto) + " pesos";
         productoComprado.innerHTML = "<i class='bi bi-box-seam-fill'></i> Producto: " + producto;
         cantidadTexto.innerHTML = "<i class='bi bi-stack'></i> Cantidad: " + cantidad;
+        const hr = document.createElement('hr');
+        fechaCompraDetalleFactura = recibo.lastElementChild;
+        fechaCompraDetalleFactura.insertAdjacentElement("beforebegin", hr);
         fechaCompra.innerHTML = "Fecha de compra: " + fechaActualString;
-        totalApagarVenta.innerHTML = "";
         alerta("correcto");
 
 
-        // Si hay cambio/devuelta, lo agregamos
+        // Si hay devuelta
         if (valorApagar > totalApagar) {
             const devuelta = valorApagar - totalApagar;
             devueltaTexto.innerHTML = "<i class='bi bi-cash'></i> Devuelta: " + formatoColombia(devuelta) + " pesos";
-            totalApagarVenta.innerHTML = "";
             alerta("correcto");
 
         }
 
-        // Crear objeto para añadir al localstorage
+        // Crear objeto de venta para añadir al localstorage
         nuevaVenta = {
             cedulaCliente: cedulaCliente,
             nombreProducto: producto,
