@@ -58,14 +58,13 @@
 
         </div>
     </div>
-
-    <!--Toast pdf-->
+    <!--Toast-->
     <div class="toast-container position-fixed bottom-0 end-0 p-3">
-        <div class="toast align-items-center text-bg-dark border-0 p-2" id="toastFacturaPdf" role="alert"
-            aria-live="assertive" aria-atomic="true">
+        <div class="toast align-items-center text-bg-dark border-0" id="toast" role="alert" aria-live="assertive"
+            aria-atomic="true">
             <div class="d-flex">
-                <div class="toast-body">
-                    <i class="bi bi-exclamation-circle-fill"></i> No hay recibo de venta disponible.
+                <div class="toast-body text-center">
+                    <p id="textoToast"></p>
                 </div>
                 <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
                     aria-label="Close"></button>
@@ -74,13 +73,6 @@
     </div>
 
     <div class="container bg-light border border-2 rounded-2 w-auto mt-5 p-3">
-        <!--Alerta-->
-        <div class="alert d-none w-75 m-auto mb-2 alert-dismissible fade show" id="alerta" role="alert">
-            <p class="fw-bold" id="mensajeAlerta"></p>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-
-
         <div class="row">
             <div class="col-lg-5">
                 <div id="carouselExampleDark" class="carousel slide" data-bs-ride="carousel">
@@ -193,31 +185,32 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form class="needs-validation" id="formularioVenta" novalidate>
+                    <form class="needs-validation" id="formularioVenta" novalidate autocomplete="off">
                         <div class="mb-3">
                             <label for="cedulaCliente" class="form-label">Cedula Cliente</label>
-                            <input type="number" id="cedulaCliente" class="form-control" required>
-                            <div class="valid-feedback">¡Correcto!</div>
-                            <div class="invalid-feedback">Por favor, ingrese una cedula valida.</div>
+                            <input type="text" inputmode="numeric" id="cedulaCliente" maxlength="10" oninput="this.value = this.value.replace(/\D/g, '')"
+                            onchange="if(this.value.length < 8) { this.value = ''; this.classList.remove('is-valid', 'is-invalid'); }"
+                                class="form-control" required>
+                            <!-- <div class="valid-feedback">¡Correcto!</div> -->
+                            <div class="invalid-feedback">Por favor, ingrese una cedula valida entre 8 y 10 digitos.</div>
                         </div>
                         <div class="mb-3">
                             <label for="productoVenta" class="form-label">Producto</label>
                             <input type="text" id="productoVenta" class="form-control" required>
-                            <div class="valid-feedback">¡Correcto!</div>
                             <div class="invalid-feedback">Por favor, ingrese un producto.</div>
                         </div>
 
                         <div class="mb-3">
                             <label for="cantidadVenta" class="form-label">Cantidad</label>
-                            <input type="number" id="cantidadVenta" min="1" step="1" class="form-control" required>
-                            <div class="valid-feedback">¡Correcto!</div>
+                            <input type="number" id="cantidadVenta" min="1" step="1"
+                                oninput="this.value = this.value.replace(/\D/g, ''); if(this.value === '0') this.value = ''" class="form-control" required>
                             <div class="invalid-feedback">Ingrese un cantidad válida.</div>
                         </div>
 
                         <div class="mb-3">
                             <label for="valorUnitarioVenta" class="form-label">Valor Unitario</label>
-                            <input type="number" min="1" step="1" class="form-control" id="valorUnitarioVenta" required>
-                            <div class="valid-feedback">¡Correcto!</div>
+                            <input type="text" inputmode="numeric" oninput="this.value = this.value.replace(/\D/g, '')"
+                                class="form-control" id="valorUnitarioVenta" required>
                             <div class="invalid-feedback">Ingrese un valor válido.</div>
                         </div>
                         <div class="mb-3 text-center">
@@ -226,8 +219,8 @@
 
                         <div class="mb-3">
                             <label for="valorApagarVenta" class="form-label">Valor a Pagar</label>
-                            <input type="number" min="1" step="1" class="form-control" id="valorApagarVenta" required>
-                            <div class="valid-feedback">¡Correcto!</div>
+                            <input type="text" inputmode="numeric" oninput="this.value = this.value.replace(/\D/g, '')"
+                                class="form-control" id="valorApagarVenta" required>
                             <div class="invalid-feedback">Ingrese un valor válido a pagar.</div>
                         </div>
 

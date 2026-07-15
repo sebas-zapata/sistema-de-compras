@@ -19,12 +19,11 @@ const cantidadInput = document.getElementById('cantidadVenta');
 const valorUnitarioInput = document.getElementById('valorUnitarioVenta');
 const totalApagarVenta = document.getElementById('totalApagarVenta');
 const devueltaVenta = document.getElementById('devueltaVenta');
-const alertaContenedor = document.getElementById('alerta');
-const mensajeAlerta = document.getElementById('mensajeAlerta');
 const recibo = document.getElementById('recibo');
-const toastFacturaPdf = document.getElementById('toastFacturaPdf');
+const toast = document.getElementById('toast');
 const footerModalHistorialDeVentas = document.getElementById('footerModalHistorialDeVentas');
 const valorApagarRecibo = document.getElementById('valorApagarRecibo');
+const textoToast = document.getElementById('textoToast');
 
 // Esperar los cambios en tiempo real de los inputs
 // Total a pagar
@@ -81,25 +80,33 @@ function calcularTotalVenta() {
 
 // Funcion para mostrar alerta dinamica
 function alerta(mensaje) {
-    if (mensaje == "correcto") {
-        alertaContenedor.classList.remove("d-none");
-        alertaContenedor.classList.add("alert-dark");
-        mensajeAlerta.innerHTML = "<i class='bi bi-check-circle-fill'></i> Correcto, venta registrada exitosamente.";
-    } else if (mensaje == "error") {
-        alertaContenedor.classList.remove("d-none");
-        alertaContenedor.classList.add("alert-secondary");
-        mensajeAlerta.innerHTML = "<i class='bi bi-exclamation-circle-fill'></i> Error, hubo un problema en la venta.";
-    } else if (mensaje == "ventas") {
-        alertaContenedor.classList.remove("d-none");
-        alertaContenedor.classList.add("alert-secondary");
-        mensajeAlerta.innerHTML = "<i class='bi bi-exclamation-circle-fill'></i> Correcto, se limpiaron todas las ventas acumuladas.";
+    const toastMensaje = bootstrap.Toast.getOrCreateInstance(toast).show();
+    switch (mensaje) {
+        case "correcto":
+            textoToast.innerHTML = "<i class='bi bi-check-circle-fill'></i> Correcto, venta registrada exitosamente.";
+            break;
+        case "error":
+            textoToast.innerHTML = "<i class='bi bi-exclamation-circle-fill'></i> Error, hubo un problema en la venta.";
+            break;
+        case "ventas":
+            textoToast.innerHTML = "<i class='bi bi-exclamation-circle-fill'></i> Correcto, se limpiaron todas las ventas acumuladas.";
+            break;
+        case "facturaNegada":
+            textoToast.innerHTML = "<i class='bi bi-exclamation-circle-fill'></i> Error, No hay recibo de venta disponible.";
+            break;
+        case "facturaAceptada":
+            textoToast.innerHTML = "<i class='bi bi-check-circle-fill'></i> Correcto, factura generada exitosamente.";
+            break;
+        default:
+            textoToast.innerHTML = "<i class='bi bi-exclamation-circle-fill'></i> Upss, parece que esta acción no esta disponible.";
+            break;
     }
 };
 
 // Generar documento PDF 
 document.getElementById('botonPdf').addEventListener('click', function () {
     if (recibo.innerText.trim() === "") {
-        const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toastFacturaPdf).show();
+        alerta("facturaNegada");
         return;
     }
 
@@ -131,6 +138,7 @@ document.getElementById('botonPdf').addEventListener('click', function () {
         boton.disabled = false;
     }, 3000);
 
+    alerta("facturaAceptada");
 });
 
 // Recorrer el array de objetos con todas las ventas realizadas
@@ -249,6 +257,7 @@ formularioVenta.addEventListener("submit", (e) => {
         return;
     }
 
+
     const totalApagar = cantidad * valorUnitarioProducto;
     const fechaActualString = new Date().toLocaleDateString('es-ES');
     const horaActualString = new Date().toLocaleTimeString('es-ES', {
@@ -312,7 +321,7 @@ formularioVenta.addEventListener("submit", (e) => {
         localStorageAñadirVentas(nuevaVenta);
 
         // Limpiar el formulario
-        formularioVenta.classList.remove('was-validated');
+        // formularioVenta.classList.remove('was-validated');
         formularioVenta.reset();
     }
 
