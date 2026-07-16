@@ -4,6 +4,7 @@ const total = document.getElementById('total');
 const productoComprado = document.getElementById('producto');
 const devueltaTexto = document.getElementById('devuelta');
 const cantidadTexto = document.getElementById('cantidad');
+const cedulaClienteRecibo = document.getElementById('cedulaClienteRecibo');
 const botonPdf = document.getElementById('botonPdf');
 const historialDeVentasBoton = document.getElementById('historialDeVentasBoton');
 const bodyModalHistorialDeVentas = document.getElementById('bodyModalHistorialDeVentas');
@@ -111,34 +112,57 @@ document.getElementById('botonPdf').addEventListener('click', function () {
     }
 
     const boton = this;
-
     const diseñoOriginal = boton.innerHTML;
+
+    // Mostrar spinner de carga
     boton.innerHTML = `
-        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-        Generando PDF...
-    `;
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            Generando PDF...
+        `;
     boton.disabled = true;
 
+    // --- MAREO DE DATOS DINÁMICOS DESDE TU RECIBO ---
+    // Generar un número de factura aleatorio o basado en la fecha para control
+    const numFactura = "FAC-" + Math.floor(100000 + Math.random() * 900000);
+    document.getElementById('pdf-numero').innerText = numFactura;
+
+    // Traspaso de textos directos
+    document.getElementById('pdf-fecha').innerText = document.getElementById('fechaCompra').innerText || new Date().toLocaleString();
+    cedulaClienteFactura = document.getElementById('cedulaClienteRecibo').innerText;
+    document.getElementById('pdf-cedula-cliente').innerText = cedulaClienteFactura !== "" ? cedulaClienteFactura : "No Registrado";
+    document.getElementById('pdf-producto-nombre').innerText = document.getElementById('producto').innerText;
+    document.getElementById('pdf-producto-cant').innerText = document.getElementById('cantidad').innerText || "1";
+    document.getElementById('pdf-producto-unitario').innerText = document.getElementById('valorUnitario').innerText || "$0";
+    document.getElementById('pdf-producto-total').innerText = document.getElementById('total').innerText || "$0";
+
+    // Traspaso de bloque financiero de cierre
+    document.getElementById('pdf-subtotal').innerText = document.getElementById('total').innerText || "$0";
+    document.getElementById('pdf-pago').innerText = document.getElementById('valorApagarRecibo').innerText || "$0";
+    document.getElementById('pdf-devuelta').innerText = document.getElementById('devuelta').innerText || "$0";
+    // ------------------------------------------------
+
+    // Seleccionar la plantilla oculta estructurada
+    const plantillaFactura = document.getElementById('plantilla-factura-pdf');
+
     setTimeout(() => {
-        // 4. Ejecutar la acción de impresión del navegador
-        // Opciones de configuración para html2pdf
         const opciones = {
-            margin: 10,
-            filename: 'recibo.pdf',
+            margin: 15,
+            filename: `Factura_${numFactura}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 }, // Aumenta la resolución
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+            pagebreak: { mode: 'avoid' }
         };
 
-        // Generar y descargar el PDF
-        html2pdf().set(opciones).from(recibo).save();
+        // Compilar el PDF
+        html2pdf().set(opciones).from(plantillaFactura).save().then(() => {
+            // Restaurar interfaz
+            boton.innerHTML = diseñoOriginal;
+            boton.disabled = false;
+            alerta("facturaAceptada");
+        });
 
-        // 5. Restaurar el botón a su estado original
-        boton.innerHTML = diseñoOriginal;
-        boton.disabled = false;
-    }, 3000);
-
-    alerta("facturaAceptada");
+    }, 1500);
 });
 
 // Recorrer el array de objetos con todas las ventas realizadas
@@ -245,7 +269,7 @@ formularioVenta.addEventListener("submit", (e) => {
         hrRecibo.remove();
     }
     // Capturar y formatear valores de los inputs
-    var cedulaCliente = document.getElementById('cedulaCliente').value.trim();
+    var cedulaCliente = document.getElementById('cedulaCliente').value;
     var producto = document.getElementById('productoVenta').value.trim();
     var cantidad = parseInt(document.getElementById('cantidadVenta').value) || 0;
     var valorUnitarioProducto = parseInt(document.getElementById('valorUnitarioVenta').value) || 0;
@@ -270,6 +294,7 @@ formularioVenta.addEventListener("submit", (e) => {
     // Si el dinero ingresado es menor a la venta - No registrar venta
     if (valorApagar < totalApagar) {
         const dineroFaltante = totalApagar - valorApagar;
+        cedulaClienteRecibo.innerHTML = cedulaCliente !== "" ? "<i class='bi bi-person-vcard'></i> Cedula: " + cedulaCliente : "<i class='bi bi-person-x-fill'></i> No Registrada";
         total.classList.add("badge", "text-bg-dark", "text-wrap");
         total.innerHTML = "<i class='bi bi-exclamation-triangle-fill'></i> Dinero pendiente: " + formatoColombia(dineroFaltante) + " pesos";
         valorApagarRecibo.innerHTML = "<i class='bi bi-wallet2'></i> Pago: " + formatoColombia(valorApagar) + " pesos";
@@ -281,10 +306,11 @@ formularioVenta.addEventListener("submit", (e) => {
         fechaCompraDetalleFactura.insertAdjacentElement("beforebegin", hr);
         fechaCompra.innerHTML = "Fecha de compra: " + fechaActualString;
         alerta("error");
+        totalApagarVenta.innerHTML = "";
 
         // Pago exacto o con devuelta
     } else {
-        total.classList.add("badge", "text-bg-dark");
+        cedulaClienteRecibo.innerHTML = cedulaCliente !== "" ? "<i class='bi bi-person-vcard'></i> Cedula: " + cedulaCliente : "<i class='bi bi-person-x-fill'></i> No registrada";
         total.innerHTML = "<i class='bi bi-cash-coin'></i> Total a pagar: " + formatoColombia(totalApagar) + " pesos.";
         valorApagarRecibo.innerHTML = "<i class='bi bi-wallet2'></i> Pago: " + formatoColombia(valorApagar) + " pesos";
         valorUnitario.innerHTML = "<i class='bi bi-coin'></i> Valor Unitario: " + formatoColombia(valorUnitarioProducto) + " pesos";
@@ -295,6 +321,7 @@ formularioVenta.addEventListener("submit", (e) => {
         fechaCompraDetalleFactura.insertAdjacentElement("beforebegin", hr);
         fechaCompra.innerHTML = "Fecha de compra: " + fechaActualString;
         alerta("correcto");
+        totalApagarVenta.innerHTML = "";
 
 
         // Si hay devuelta
