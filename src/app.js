@@ -25,6 +25,7 @@ const toast = document.getElementById('toast');
 const footerModalHistorialDeVentas = document.getElementById('footerModalHistorialDeVentas');
 const valorApagarRecibo = document.getElementById('valorApagarRecibo');
 const textoToast = document.getElementById('textoToast');
+const totales = document.getElementById('totales');
 
 // Esperar los cambios en tiempo real de los inputs
 // Total a pagar
@@ -263,6 +264,8 @@ formularioVenta.addEventListener("submit", (e) => {
     fechaCompra.innerHTML = '';
     valorUnitario.innerHTML = '';
     valorApagarRecibo.innerHTML = '';
+    cedulaClienteRecibo.innerHTML = '';
+    botonPdf.disabled = false;
     // Borrar hr del recibo de ventas
     const hrRecibo = document.querySelector("#recibo hr");
     if (hrRecibo) {
@@ -273,7 +276,7 @@ formularioVenta.addEventListener("submit", (e) => {
     var producto = document.getElementById('productoVenta').value.trim();
     var cantidad = parseInt(document.getElementById('cantidadVenta').value) || 0;
     var valorUnitarioProducto = parseInt(document.getElementById('valorUnitarioVenta').value) || 0;
-    var valorApagar = parseInt(document.getElementById('valorApagarVenta').value) || 0;
+    var valorApagar = parseInt(document.getElementById('valorApagarVenta').value);
 
     // Realizar validacion y mostrar alerta en los inpust
     if (producto === "" || cantidad <= 0 || valorUnitarioProducto <= 0 || valorApagar <= 0) {
@@ -295,24 +298,25 @@ formularioVenta.addEventListener("submit", (e) => {
     if (valorApagar < totalApagar) {
         const dineroFaltante = totalApagar - valorApagar;
         cedulaClienteRecibo.innerHTML = cedulaCliente !== "" ? "<i class='bi bi-person-vcard'></i> Cedula: " + cedulaCliente : "<i class='bi bi-person-x-fill'></i> No Registrada";
-        total.classList.add("badge", "text-bg-dark", "text-wrap");
         total.innerHTML = "<i class='bi bi-exclamation-triangle-fill'></i> Dinero pendiente: " + formatoColombia(dineroFaltante) + " pesos";
-        valorApagarRecibo.innerHTML = "<i class='bi bi-wallet2'></i> Pago: " + formatoColombia(valorApagar) + " pesos";
+        valorApagarRecibo.innerHTML = formatoColombia(valorApagar) + " pesos";
         valorUnitario.innerHTML = "<del><i class='bi bi-coin'></i> Valor Unitario: " + formatoColombia(valorUnitarioProducto) + " pesos</del>";
         productoComprado.innerHTML = " <del><i class='bi bi-box-seam-fill'></i> Producto: " + producto + "</del>";
         cantidadTexto.innerHTML = "<del><i class='bi bi-stack'></i> Cantidad: " + cantidad + "</del>";
         const hr = document.createElement('hr');
         fechaCompraDetalleFactura = recibo.lastElementChild;
         fechaCompraDetalleFactura.insertAdjacentElement("beforebegin", hr);
-        fechaCompra.innerHTML = "Fecha de compra: " + fechaActualString;
+        fechaCompra.innerHTML = "";
+        botonPdf.disabled = true;
         alerta("error");
-        totalApagarVenta.innerHTML = "";
+        totales.classList.remove('d-none');
+        devueltaTexto.innerHTML = formatoColombia(0) + " pesos";
 
         // Pago exacto o con devuelta
     } else {
         cedulaClienteRecibo.innerHTML = cedulaCliente !== "" ? "<i class='bi bi-person-vcard'></i> Cedula: " + cedulaCliente : "<i class='bi bi-person-x-fill'></i> No registrada";
         total.innerHTML = "<i class='bi bi-cash-coin'></i> Total a pagar: " + formatoColombia(totalApagar) + " pesos.";
-        valorApagarRecibo.innerHTML = "<i class='bi bi-wallet2'></i> Pago: " + formatoColombia(valorApagar) + " pesos";
+        valorApagarRecibo.innerHTML = formatoColombia(valorApagar) + " pesos";
         valorUnitario.innerHTML = "<i class='bi bi-coin'></i> Valor Unitario: " + formatoColombia(valorUnitarioProducto) + " pesos";
         productoComprado.innerHTML = "<i class='bi bi-box-seam-fill'></i> Producto: " + producto;
         cantidadTexto.innerHTML = "<i class='bi bi-stack'></i> Cantidad: " + cantidad;
@@ -321,16 +325,20 @@ formularioVenta.addEventListener("submit", (e) => {
         fechaCompraDetalleFactura.insertAdjacentElement("beforebegin", hr);
         fechaCompra.innerHTML = "Fecha de compra: " + fechaActualString;
         alerta("correcto");
+        botonPdf.disabled = false;
         totalApagarVenta.innerHTML = "";
+        totales.classList.remove('d-none');
 
+        // Realizar logica para la devuelta de dinero
+        const devuelta = valorApagar - totalApagar;
 
         // Si hay devuelta
-        if (valorApagar > totalApagar) {
-            const devuelta = valorApagar - totalApagar;
-            devueltaTexto.innerHTML = "<i class='bi bi-cash'></i> Devuelta: " + formatoColombia(devuelta) + " pesos";
-            alerta("correcto");
-
+        if (devuelta >= 0) {
+            devueltaTexto.innerHTML = valorApagar === "" ? formatoColombia(0) + "pesos" : formatoColombia(devuelta) + " pesos";
+        } else if (valorApagar == totalApagar) {
+            devueltaTexto.innerHTML = formatoColombia(0) + " pesos";
         }
+
 
         // Crear objeto de venta para añadir al localstorage
         nuevaVenta = {
