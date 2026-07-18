@@ -22,10 +22,18 @@ const totalApagarVenta = document.getElementById('totalApagarVenta');
 const devueltaVenta = document.getElementById('devueltaVenta');
 const recibo = document.getElementById('recibo');
 const toast = document.getElementById('toast');
+const modalHistorialDeVentas = document.getElementById('modalHistorialDeVentas');
+const instanciaModalHistorialDeVentas = bootstrap.Modal.getInstance(modalHistorialDeVentas);
 const footerModalHistorialDeVentas = document.getElementById('footerModalHistorialDeVentas');
 const valorApagarRecibo = document.getElementById('valorApagarRecibo');
 const textoToast = document.getElementById('textoToast');
 const totales = document.getElementById('totales');
+
+const confirmarBorrarHistorialDeVentas = document.getElementById('confirmarBorrarHistorialDeVentas');
+const instanciaToastConfirmacion = new bootstrap.Toast(confirmarBorrarHistorialDeVentas);
+
+const botonBorrarVentas = document.getElementById('borrarVentas');
+const btnConfirmarToast = document.getElementById('btnConfirmarToast');
 
 // Esperar los cambios en tiempo real de los inputs
 // Total a pagar
@@ -174,6 +182,14 @@ historialDeVentasBoton.addEventListener('click', () => {
     numeroDeVentas.innerHTML = ventas.length;
     bodyModalHistorialDeVentas.innerHTML = "";
 
+    if (ventas.length <= 0) {
+        botonBorrarVentas.classList.add('d-none');
+        botonCalcularTotalAcumulado.classList.add('d-none');
+    } else {
+        botonBorrarVentas.classList.remove('d-none');
+        botonCalcularTotalAcumulado.classList.remove('d-none');
+    }
+
     // Tabla dinamica con informacion de las ventas
     bodyModalHistorialDeVentas.innerHTML = `
     <div class="table-responsive">
@@ -206,7 +222,8 @@ historialDeVentasBoton.addEventListener('click', () => {
                     <td>${venta.horaDeVenta}</td>
                 </tr>
             `).join("")
-            : `
+            :
+            `
                 <tr>
                     <td colspan="9" class="text-center fw-bold">
                         No hay ventas registradas - ${fechaActual.toLocaleDateString('es-ES')}.
@@ -220,10 +237,19 @@ historialDeVentasBoton.addEventListener('click', () => {
     `
 });
 
+botonBorrarVentas.addEventListener('click', () => {
+    instanciaToastConfirmacion.show();
+});
+
 // Borrar todas las ventas, vaciar array
-borrarVentas.addEventListener('click', () => {
+btnConfirmarToast.addEventListener('click', () => {
     const ventasABorrar = localStorageConseguirVentas();
     if (ventasABorrar.length >= 1) {
+        const instanciaModalHistorialDeVentas = bootstrap.Modal.getInstance(modalHistorialDeVentas);
+        instanciaToastConfirmacion.hide();
+        if (instanciaModalHistorialDeVentas) {
+            instanciaModalHistorialDeVentas.hide();
+        }
         bodyModalHistorialDeVentas.innerHTML = "";
         numeroDeVentas.innerHTML = "";
         localStorage.setItem('ventas', JSON.stringify([]));
@@ -276,7 +302,7 @@ formularioVenta.addEventListener("submit", (e) => {
     var producto = document.getElementById('productoVenta').value.trim();
     var cantidad = parseInt(document.getElementById('cantidadVenta').value) || 0;
     var valorUnitarioProducto = parseInt(document.getElementById('valorUnitarioVenta').value) || 0;
-    var valorApagar = parseInt(document.getElementById('valorApagarVenta').value);
+    var valorApagar = parseInt(document.getElementById('valorApagarVenta').value) || 0;
 
     // Realizar validacion y mostrar alerta en los inpust
     if (producto === "" || cantidad <= 0 || valorUnitarioProducto <= 0 || valorApagar <= 0) {

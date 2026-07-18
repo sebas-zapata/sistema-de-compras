@@ -72,6 +72,21 @@
         </div>
     </div>
 
+    <!--Toast confirmacion para eliminar historial de ventas-->
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1060;">
+        <div id="confirmarBorrarHistorialDeVentas" class="toast align-items-center text-bg-dark border-0" role="alert"
+            aria-live="assertive" aria-atomic="true" data-bs-autohide="false">
+            <div class="toast-body">
+                <p class="mb-2"><i class="bi bi-exclamation-triangle-fill"></i> ¿Estás seguro de realizar esta acción?</p>
+                <div class="mt-2 pt-2 border-top d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-light" data-bs-dismiss="toast">Cancelar</button>
+                    <button type="button" id="btnConfirmarToast" class="btn btn-sm btn-light">Sí, confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <div class="container bg-light border border-2 rounded-2 w-auto mt-5 p-3">
         <div class="row">
             <div class="col-lg-5">
@@ -184,7 +199,8 @@
                     <!-- Totales -->
                     <div id="totales" class="mt-4 p-3 bg-white rounded shadow-sm border d-none">
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="text-secondary fw-semibold"><i class='bi bi-wallet2'></i> Valor Ingresado:</span>
+                            <span class="text-secondary fw-semibold"><i class='bi bi-wallet2'></i> Valor
+                                Ingresado:</span>
                             <h5 id="valorApagarRecibo" class="fs-4 m-0 text-dark fw-bold"></h5>
                         </div>
                         <div class="d-flex justify-content-between align-items-center">
