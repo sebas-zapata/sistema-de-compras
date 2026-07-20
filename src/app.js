@@ -28,10 +28,8 @@ const footerModalHistorialDeVentas = document.getElementById('footerModalHistori
 const valorApagarRecibo = document.getElementById('valorApagarRecibo');
 const textoToast = document.getElementById('textoToast');
 const totales = document.getElementById('totales');
-
 const confirmarBorrarHistorialDeVentas = document.getElementById('confirmarBorrarHistorialDeVentas');
 const instanciaToastConfirmacion = new bootstrap.Toast(confirmarBorrarHistorialDeVentas);
-
 const botonBorrarVentas = document.getElementById('borrarVentas');
 const btnConfirmarToast = document.getElementById('btnConfirmarToast');
 
@@ -192,19 +190,19 @@ historialDeVentasBoton.addEventListener('click', () => {
 
     // Tabla dinamica con informacion de las ventas
     bodyModalHistorialDeVentas.innerHTML = `
-    <div class="table-responsive">
+    <div class="table-responsive" style="max-height: 500px">
     <table class="table table-striped table-hover table-bordered text-center">
     <thead>
     <tr>
-      <th scope="col">#</th>
-      <th scope="col">Cedula Cliente</th>
-      <th scope="col">Producto</th>
-      <th scope="col">Cantidad</th>
-      <th scope="col">Valor Unitario</th>
-      <th scope="col">Pago</th>
-      <th scope="col">Valor Venta</th>
-      <th scope="col">Devuelta Venta</th>
-      <th scope="col">Fecha Venta</th>
+      <th class="sticky-top bg-dark text-white" scope="col">#</th>
+      <th class="sticky-top bg-dark text-white" scope="col">Cedula Cliente</th>
+      <th class="sticky-top bg-dark text-white" scope="col">Producto</th>
+      <th class="sticky-top bg-dark text-white" scope="col">Cantidad</th>
+      <th class="sticky-top bg-dark text-white" scope="col">Valor Unitario</th>
+      <th class="sticky-top bg-dark text-white" scope="col">Pago</th>
+      <th class="sticky-top bg-dark text-white" scope="col">Valor Venta</th>
+      <th class="sticky-top bg-dark text-white" scope="col">Devuelta Venta</th>
+      <th class="sticky-top bg-dark text-white" scope="col">Fecha Venta</th>
     </tr>
     </thead>
     <tbody>
@@ -237,6 +235,7 @@ historialDeVentasBoton.addEventListener('click', () => {
     `
 });
 
+// Boton para mostrar la alerta de confirmacion eliminar ventas 
 botonBorrarVentas.addEventListener('click', () => {
     instanciaToastConfirmacion.show();
 });
@@ -311,7 +310,10 @@ formularioVenta.addEventListener("submit", (e) => {
     }
 
 
+    // Almacenar el total a pagar
     const totalApagar = cantidad * valorUnitarioProducto;
+
+    // Almacenar fecha actual y hora actual
     const fechaActualString = new Date().toLocaleDateString('es-ES');
     const horaActualString = new Date().toLocaleTimeString('es-ES', {
         hour: 'numeric',
