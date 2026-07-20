@@ -53,15 +53,18 @@
     </div>
 
     <!--Toast confirmacion para eliminar historial de ventas-->
-    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1060;">
-        <div id="confirmarBorrarHistorialDeVentas" class="toast align-items-center text-bg-dark border-0" role="alert"
+    <div class="toast-container position-fixed top-30 start-50  translate-middle-x p-5" style="z-index: 1060;">
+        <div id="confirmarBorrarHistorialDeVentas" class="toast border border-4 border-dark align-items-center bg-white" role="alert"
             aria-live="assertive" aria-atomic="true" data-bs-autohide="false">
             <div class="toast-body">
-                <p class="mb-2"><i class="bi bi-exclamation-triangle-fill"></i> ¿Estás seguro de realizar esta acción?
+                <p class="mb-2 fs-6 fw-bold text-dark">
+                    <i class="bi bi-exclamation-octagon-fill"></i> **Atención:** Esta acción no se puede deshacer.
+                    ¿Deseas continuar?
                 </p>
+
                 <div class="mt-2 pt-2 border-top d-flex justify-content-end gap-2">
-                    <button type="button" class="btn btn-sm btn-outline-light" data-bs-dismiss="toast">Cancelar</button>
-                    <button type="button" id="btnConfirmarToast" class="btn btn-sm btn-light">Sí, confirmar</button>
+                    <button type="button" class="btn btn-sm btn-outline-dark" data-bs-dismiss="toast">Cancelar</button>
+                    <button type="button" id="btnConfirmarToast" class="btn btn-sm btn-dark">Sí, confirmar</button>
                 </div>
             </div>
         </div>
@@ -267,11 +270,11 @@
                 <div id="bodyModalHistorialDeVentas" class="modal-body text-center">
                 </div>
                 <div class="modal-footer" id="footerModalHistorialDeVentas">
-                    <button type="button" id="borrarVentas" class="btn btn-secondary"><i class="bi bi-trash3-fill"></i>
-                        Limpiar Ventas</button>
                     <button type="button" id="botonCalcularTotalAcumulado" class="btn btn-dark"><i
                             class="bi bi-currency-dollar"></i> Calcular
                         total</button>
+                    <button type="button" id="borrarVentas" class="btn btn-secondary"><i class="bi bi-trash3-fill"></i>
+                        Limpiar Ventas</button>
                 </div>
             </div>
         </div>

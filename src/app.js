@@ -267,8 +267,8 @@ botonCalcularTotalAcumulado.addEventListener('click', () => {
         if (!totalAcumuladoExistente) {
             // Si no existe crea el elemento 
             const h5 = document.createElement('h5');
-            h5.classList.add('text-dark', 'fw-bolder', 'me-3');
-            h5.textContent = "Total Final: " + formatoColombia(totalFinal) + " pesos";
+            h5.classList.add('text-dark', 'fw-bold', 'me-3');
+            h5.textContent = "Total Acumulado: " + formatoColombia(totalFinal) + " pesos";
             footerModalHistorialDeVentas.prepend(h5);
             setTimeout(() => {
                 h5.remove();
